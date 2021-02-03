@@ -1,21 +1,31 @@
 version: '3.8'
 
 services:
-  web:
+  hello_world_get_items:
     build:
-       context: ./services/api
+       context: ./services/api/hello_world
     command: gunicorn main:app --bind 0.0.0.0:5000 -k uvicorn.workers.UvicornWorker
     expose:
       - 5000
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.fastapi.rule=Host(`fastapi.localhost`)"
-
+  igv:
+    build:
+       context: ./services/api/igv
+    command: http-server -a 0.0.0.0 igv-webapp.1.4.6/
+    expose:
+      - 8081
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.igv.rule=Host(`igv.localhost`)"
+      - "traefik.tcp.routers.igv.entryPoints=igv"
   traefik:
     image: traefik:v2.2
     ports:
       - "80:80"
       - "8080:8080"
+      - "8081:8081"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "$PWD/services/traefik/traefik.dev.toml:/etc/traefik/traefik.toml"
